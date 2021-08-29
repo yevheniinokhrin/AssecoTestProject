@@ -1,7 +1,13 @@
 package com.nokhrin.gui;
 
 
+import com.nokhrin.controller.Controller;
+
+
+
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,24 +15,31 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 
+
+
 public class UserForm extends JFrame {
 
 
-
+    private Controller controller;
     private JComboBox comboBox;
     private JComboBox comboBoxDistricts;
     private JComboBox comboBoxPositions;
     private JPanel panel;
+    private JButton removeButton;
+    private JButton avgButton;
     private JTextField firstNameTextField;
     private JTextField lastNameTextField;
     private JTextField salaryTextField;
     private JLabel markLabel;
+    private final Font TEXT_FONT = new Font("Serif", Font.BOLD, 16);
     private JTable table;
 
     public UserForm() {
         this.setBounds(150, 200, 1000, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
+        controller = new Controller();
+        UIManager.put("Button.font", new FontUIResource(TEXT_FONT));
         init();
     }
 
@@ -37,21 +50,49 @@ public class UserForm extends JFrame {
         JPanel leftPanel = new JPanel(new BorderLayout(0, 10));
         JPanel rightPanel = new JPanel(new GridLayout(8, 1, 0, 5));
 
-        table = new JTable();
+        table = (JTable) setFontToComponent(new JTable());
         JScrollPane sp = new JScrollPane(table);
-        comboBox = new JComboBox(new String[]{"Employees", "Positions", "Districts"});
-        comboBoxDistricts = new JComboBox(new String[]{"A", "B"});
-        comboBoxPositions = new JComboBox(new String[]{"Programmer", "Tester"});
+        comboBox = (JComboBox) setFontToComponent(new JComboBox(new String[]{"Employees", "Positions", "Districts"}));
+        comboBoxDistricts = (JComboBox) setFontToComponent(new JComboBox(controller.getDataListForComboBox(2)));
+        comboBoxPositions = (JComboBox) setFontToComponent(new JComboBox(controller.getDataListForComboBox(1)));
+        avgButton = createButton("Show avg salary", new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow < 0) {
+                    selectedRow = 0;
+                }
 
+                markLabel.setText(controller.getAvgSalary(Integer.valueOf(table.getValueAt(selectedRow, 0).toString().toString())));
+                table.setModel(new DefaultTableModel(controller.getTableDataWithSalary(), new String[]{"ID", "Name", "District","Salary",}));
+                avgButton.setEnabled(false);
+            }
+
+        });
+        removeButton = createButton("Remove employee", new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+                int selectedIndex = comboBox.getSelectedIndex();
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow < 0) {
+                    selectedRow = 0;
+                }
+
+                controller.deleteEmployee(selectedIndex, Integer.valueOf(table.getValueAt(selectedRow, 0).toString()));
+                comboBox.setSelectedIndex(selectedIndex);
+            }
+        });
         comboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
+                int selectedIndex = comboBox.getSelectedIndex();
+                removeButton.setEnabled(controller.isRemoveButtonEnabled(selectedIndex));
+                table.setModel(new DefaultTableModel(controller.getDataListForTable(selectedIndex), new String[]{"ID", "Name"}));
+                avgButton.setEnabled((controller.isRemoveAvgButton(selectedIndex,table.getRowCount())));
             }
         });
         comboBox.setSelectedIndex(0);
-        firstNameTextField =  new JTextField("");
-        lastNameTextField = new JTextField("");
-        salaryTextField = new JTextField("");
+        firstNameTextField = (JTextField) setFontToComponent(new JTextField(""));
+        lastNameTextField = (JTextField) setFontToComponent(new JTextField(""));
+        salaryTextField = (JTextField) setFontToComponent(new JTextField(""));
         salaryTextField.addKeyListener(new KeyAdapter() {
             public void keyTyped(KeyEvent e) {
                 char c = e.getKeyChar();
@@ -63,36 +104,38 @@ public class UserForm extends JFrame {
                 }
             }
         });
-        markLabel = new JLabel("Salary");
+        markLabel = (JLabel) setFontToComponent(new JLabel("Salary"));
         leftPanel.add(comboBox, BorderLayout.NORTH);
         leftPanel.add(sp, BorderLayout.CENTER);
         JPanel lowerLeftPanel = new JPanel(new GridLayout(1, 3, 5, 0));
 
         lowerLeftPanel.add(markLabel);
-        lowerLeftPanel.add(createButton("Show avg salary", new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        }));
+        lowerLeftPanel.add(avgButton);
         lowerLeftPanel.add(createButton("Employee info", new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow < 0) {
+                    selectedRow = 0;
+                }
+                comboBox.setSelectedIndex(0);
+                JOptionPane.showMessageDialog(null, controller.getUserInfo(Integer.valueOf(table.getValueAt(selectedRow, 0).toString())));
 
             }
 
         }));
         leftPanel.add(lowerLeftPanel, BorderLayout.SOUTH);
 
-        rightPanel.add(new JLabel("First name:"));
+        rightPanel.add(setFontToComponent(new JLabel("First name:")));
         rightPanel.add(firstNameTextField);
-        rightPanel.add(new JLabel("Last name:"));
+        rightPanel.add(setFontToComponent(new JLabel("Last name:")));
         rightPanel.add(lastNameTextField);
         JPanel listsPanel = new JPanel(new GridLayout(2, 2, 5, 0));
-        listsPanel.add(new JLabel("Select district:"));
-        listsPanel.add(new JLabel("Select position:"));
+        listsPanel.add(setFontToComponent(new JLabel("Select district:")));
+        listsPanel.add(setFontToComponent(new JLabel("Select position:")));
         listsPanel.add(comboBoxDistricts);
         listsPanel.add(comboBoxPositions);
         rightPanel.add(listsPanel);
-        rightPanel.add(new JLabel("Salary:"));
+        rightPanel.add(setFontToComponent(new JLabel("Salary:")));
         rightPanel.add(salaryTextField);
 
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 0));
@@ -100,27 +143,30 @@ public class UserForm extends JFrame {
         buttonPanel.add(createButton("Add employee", new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
+                controller.saveEmployee(firstNameTextField.getText(), lastNameTextField.getText(), salaryTextField.getText(), comboBoxDistricts.getSelectedIndex(), comboBoxPositions.getSelectedIndex());
+                comboBox.setSelectedIndex(0);
             }
 
         }));
 
-        buttonPanel.add(createButton("Remove employee", new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-
-            }
-
-        }));
+        buttonPanel.add(removeButton);
         JPanel secondaryButtonPanel = new JPanel(new GridLayout(2, 1, 0, 10));
 
         secondaryButtonPanel.add(createButton("Add district", new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
+                String districtName = (String) JOptionPane.showInputDialog(panel, "Enter new district name", "", JOptionPane.PLAIN_MESSAGE, null, null, "");
+                controller.saveDistrict(districtName);
+                comboBox.setSelectedIndex(2);
+                comboBoxDistricts.setModel(new DefaultComboBoxModel(controller.getDataListForComboBox(2)));
 
             }
         }));
         secondaryButtonPanel.add(createButton("Add position", new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
+                String positionName = (String) JOptionPane.showInputDialog(panel, "Enter new position name", "", JOptionPane.PLAIN_MESSAGE, null, null, "");
+                controller.savePosition(positionName);
+                comboBox.setSelectedIndex(1);
+                comboBoxPositions.setModel(new DefaultComboBoxModel(controller.getDataListForComboBox(1)));
             }
         }));
 
@@ -132,6 +178,11 @@ public class UserForm extends JFrame {
         add(panel);
     }
 
+    private JComponent setFontToComponent(JComponent component) {
+        component.setFont(TEXT_FONT);
+        return component;
+    }
+
 
     private JButton createButton(String name, ActionListener listener) {
         JButton button = new JButton(name);
@@ -140,5 +191,5 @@ public class UserForm extends JFrame {
         button.addActionListener(listener);
         return button;
     }
-
+   
 }
