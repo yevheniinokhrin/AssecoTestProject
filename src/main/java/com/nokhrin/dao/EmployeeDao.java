@@ -71,9 +71,8 @@ public class EmployeeDao {
         Transaction tx = null;
         Employee employee = null;
         try {
-            tx = session.beginTransaction();
-            employee = session.get(Employee.class, id);
-
+                tx = session.beginTransaction();
+                employee = session.get(Employee.class, id);
             tx.commit();
         } catch (HibernateException e) {
             if (tx!=null) tx.rollback();

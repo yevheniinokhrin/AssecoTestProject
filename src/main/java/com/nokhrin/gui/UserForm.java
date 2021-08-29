@@ -4,7 +4,6 @@ package com.nokhrin.gui;
 import com.nokhrin.controller.Controller;
 
 
-
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.table.DefaultTableModel;
@@ -13,8 +12,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
-
 
 
 public class UserForm extends JFrame {
@@ -55,39 +52,23 @@ public class UserForm extends JFrame {
         comboBox = (JComboBox) setFontToComponent(new JComboBox(new String[]{"Employees", "Positions", "Districts"}));
         comboBoxDistricts = (JComboBox) setFontToComponent(new JComboBox(controller.getDataListForComboBox(2)));
         comboBoxPositions = (JComboBox) setFontToComponent(new JComboBox(controller.getDataListForComboBox(1)));
-        avgButton = createButton("Show avg salary", new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow < 0) {
-                    selectedRow = 0;
-                }
+        avgButton = createButton("Show avg salary", e -> {
 
-                markLabel.setText(controller.getAvgSalary(Integer.valueOf(table.getValueAt(selectedRow, 0).toString().toString())));
-                table.setModel(new DefaultTableModel(controller.getTableDataWithSalary(), new String[]{"ID", "Name", "District","Salary",}));
-                avgButton.setEnabled(false);
-            }
-
+            markLabel.setText(controller.getAvgSalary(getIdTableValue()));
+            table.setModel(new DefaultTableModel(controller.getTableDataWithSalary(), new String[]{"ID", "Name", "District", "Salary",}));
+            avgButton.setEnabled(false);
         });
-        removeButton = createButton("Remove employee", new ActionListener() {
+        removeButton = createButton("Remove employee", e -> {
+            int selectedIndex = comboBox.getSelectedIndex();
 
-            public void actionPerformed(ActionEvent e) {
-                int selectedIndex = comboBox.getSelectedIndex();
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow < 0) {
-                    selectedRow = 0;
-                }
-
-                controller.deleteEmployee(selectedIndex, Integer.valueOf(table.getValueAt(selectedRow, 0).toString()));
-                comboBox.setSelectedIndex(selectedIndex);
-            }
+            controller.deleteEmployee(selectedIndex, getIdTableValue());
+            comboBox.setSelectedIndex(selectedIndex);
         });
-        comboBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int selectedIndex = comboBox.getSelectedIndex();
-                removeButton.setEnabled(controller.isRemoveButtonEnabled(selectedIndex));
-                table.setModel(new DefaultTableModel(controller.getDataListForTable(selectedIndex), new String[]{"ID", "Name"}));
-                avgButton.setEnabled((controller.isRemoveAvgButton(selectedIndex,table.getRowCount())));
-            }
+        comboBox.addActionListener(e -> {
+            int selectedIndex = comboBox.getSelectedIndex();
+            removeButton.setEnabled(controller.isRemoveButtonEnabled(selectedIndex));
+            table.setModel(new DefaultTableModel(controller.getDataListForTable(selectedIndex), new String[]{"ID", "Name"}));
+            avgButton.setEnabled((controller.isRemoveAvgButton(selectedIndex, table.getRowCount())));
         });
         comboBox.setSelectedIndex(0);
         firstNameTextField = (JTextField) setFontToComponent(new JTextField(""));
@@ -111,16 +92,10 @@ public class UserForm extends JFrame {
 
         lowerLeftPanel.add(markLabel);
         lowerLeftPanel.add(avgButton);
-        lowerLeftPanel.add(createButton("Employee info", new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow < 0) {
-                    selectedRow = 0;
-                }
-                comboBox.setSelectedIndex(0);
-                JOptionPane.showMessageDialog(null, controller.getUserInfo(Integer.valueOf(table.getValueAt(selectedRow, 0).toString())));
+        lowerLeftPanel.add(createButton("Employee info", e -> {
 
-            }
+            comboBox.setSelectedIndex(0);
+            JOptionPane.showMessageDialog(null, controller.getUserInfo(getIdTableValue()));
 
         }));
         leftPanel.add(lowerLeftPanel, BorderLayout.SOUTH);
@@ -140,34 +115,27 @@ public class UserForm extends JFrame {
 
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 0));
 
-        buttonPanel.add(createButton("Add employee", new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+        buttonPanel.add(createButton("Add employee", e -> {
 
-                controller.saveEmployee(firstNameTextField.getText(), lastNameTextField.getText(), salaryTextField.getText(), comboBoxDistricts.getSelectedIndex(), comboBoxPositions.getSelectedIndex());
-                comboBox.setSelectedIndex(0);
-            }
-
+            controller.saveEmployee(firstNameTextField.getText(), lastNameTextField.getText(), salaryTextField.getText(), comboBoxDistricts.getSelectedIndex(), comboBoxPositions.getSelectedIndex());
+            comboBox.setSelectedIndex(0);
         }));
 
         buttonPanel.add(removeButton);
         JPanel secondaryButtonPanel = new JPanel(new GridLayout(2, 1, 0, 10));
 
-        secondaryButtonPanel.add(createButton("Add district", new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String districtName = (String) JOptionPane.showInputDialog(panel, "Enter new district name", "", JOptionPane.PLAIN_MESSAGE, null, null, "");
-                controller.saveDistrict(districtName);
-                comboBox.setSelectedIndex(2);
-                comboBoxDistricts.setModel(new DefaultComboBoxModel(controller.getDataListForComboBox(2)));
+        secondaryButtonPanel.add(createButton("Add district", e -> {
+            String districtName = (String) JOptionPane.showInputDialog(panel, "Enter new district name", "", JOptionPane.PLAIN_MESSAGE, null, null, "");
+            controller.saveDistrict(districtName);
+            comboBox.setSelectedIndex(2);
+            comboBoxDistricts.setModel(new DefaultComboBoxModel(controller.getDataListForComboBox(2)));
 
-            }
         }));
-        secondaryButtonPanel.add(createButton("Add position", new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String positionName = (String) JOptionPane.showInputDialog(panel, "Enter new position name", "", JOptionPane.PLAIN_MESSAGE, null, null, "");
-                controller.savePosition(positionName);
-                comboBox.setSelectedIndex(1);
-                comboBoxPositions.setModel(new DefaultComboBoxModel(controller.getDataListForComboBox(1)));
-            }
+        secondaryButtonPanel.add(createButton("Add position", e -> {
+            String positionName = (String) JOptionPane.showInputDialog(panel, "Enter new position name", "", JOptionPane.PLAIN_MESSAGE, null, null, "");
+            controller.savePosition(positionName);
+            comboBox.setSelectedIndex(1);
+            comboBoxPositions.setModel(new DefaultComboBoxModel(controller.getDataListForComboBox(1)));
         }));
 
         buttonPanel.add(secondaryButtonPanel);
@@ -191,5 +159,21 @@ public class UserForm extends JFrame {
         button.addActionListener(listener);
         return button;
     }
-   
+
+    private int getSelectedRow() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            selectedRow = 0;
+        }
+        return selectedRow;
+    }
+
+    private int getIdTableValue() {
+        int selectedRow = getSelectedRow();
+        if (table.getRowCount() > 0) {
+            return Integer.parseInt(table.getValueAt(selectedRow, 0).toString());
+        } else {
+            return -1;
+        }
+    }
 }

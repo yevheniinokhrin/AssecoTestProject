@@ -23,6 +23,7 @@ public class Controller {
         positionDao = new PositionDao();
     }
     public void saveEmployee(String firstName, String lastName, String salary, int idDistrict, int idPosition) {
+        if(!firstName.equals("") && !lastName.equals("") && !salary.equals("") && idDistrict>=0 && idPosition>=0) {
             Employee employee = new Employee();
             employee.setFirstName(firstName);
             employee.setLastName(lastName);
@@ -30,17 +31,21 @@ public class Controller {
             employee.setPosition(positionDao.getPositionById(idPosition + 1));
             employee.setDistrict(districtDao.getDistrictById(idDistrict + 1));
             employeeDao.saveEmployee(employee);
+        }
     }
     public void saveDistrict(String name){
+        if(!name.equals("")) {
             District district = new District();
             district.setDistrictName(name);
             districtDao.saveDistrict(district);
+        }
     }
     public void savePosition(String name){
+        if(!name.equals("")) {
             Position position = new Position();
             position.setPosition(name);
             positionDao.savePosition(position);
-
+        }
     }
     public void deleteEmployee(int selectedIndex, int id) {
         if (selectedIndex == 0) {
