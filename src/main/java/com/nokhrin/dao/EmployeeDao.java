@@ -37,9 +37,11 @@ public class EmployeeDao {
 
         try {
             tx = session.beginTransaction();
-            Employee employee = (Employee)session.get(Employee.class, employeeID);
-            session.delete(employee);
-            tx.commit();
+            Employee employee = session.get(Employee.class, employeeID);
+            if(employee!=null) {
+                session.delete(employee);
+            }
+                tx.commit();
         } catch (HibernateException e) {
             if (tx!=null) tx.rollback();
             e.printStackTrace();

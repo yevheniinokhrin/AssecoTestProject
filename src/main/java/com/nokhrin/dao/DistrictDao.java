@@ -37,7 +37,7 @@ public class DistrictDao {
         District district = null;
         try {
             tx = session.beginTransaction();
-            district = (District) session.get(District.class, id);
+            district = session.get(District.class, id);
 
             tx.commit();
         } catch (HibernateException e) {
