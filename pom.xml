@@ -43,7 +43,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.nokhrin.AssecoDSTestProject</mainClass>
+                            <mainClass>com.nokhrin.AssecoTestProject</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
